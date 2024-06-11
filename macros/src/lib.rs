@@ -15,8 +15,8 @@ use utils::zzz;
 #[proc_macro]
 pub fn normalize_list(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as LitStr);
-    let string = utils::normalize_list_impl(input.value());
-
+    let mut string = utils::normalize_list_impl(input.value());
+    string.push_str(&format!(" {}", env!("CARGO_PKG_NAME")));
     quote! {
         #string
     }
@@ -30,7 +30,7 @@ pub fn normalize_list_from_util(input: TokenStream) -> TokenStream {
     let string = input.value();
 
     quote! {
-        zzz!(#string)
+        ::ui_helpers_rs::zzz!(#string)
     }
     .into()
 }
