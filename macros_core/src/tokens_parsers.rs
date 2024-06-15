@@ -1,10 +1,10 @@
-use proc_macro2::{Delimiter, Group, TokenStream, TokenTree};
+use proc_macro2::{Delimiter, Group, Span, TokenStream, TokenTree};
 use quote::{ToTokens, TokenStreamExt};
 use syn::{
     parse::{Parse, ParseStream},
     parse2,
     token::{And, AndAnd, Comma, Dot, Star},
-    Error, Ident, LitBool, LitStr, Result,
+    Error, Ident, LitBool, LitInt, LitStr, Result,
 };
 
 #[derive(Debug)]
@@ -13,7 +13,6 @@ pub struct ChunkGroup(Group);
 impl Parse for ChunkGroup {
     fn parse(input: ParseStream) -> Result<Self> {
         let literal: TokenTree = input.parse()?;
-        println!("{literal:?}");
         if let TokenTree::Group(group) = literal {
             if group.delimiter() != Delimiter::Parenthesis {
                 return Err(Error::new_spanned(
@@ -32,7 +31,7 @@ impl Parse for ChunkGroup {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ChunkIdent {
     pub sym: String,
     pub stream: TokenStream,
@@ -46,9 +45,14 @@ impl ChunkIdent {
     }
 }
 
+impl ToTokens for ChunkIdent {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        tokens.append_all(self.stream.clone());
+    }
+}
+
 impl Parse for ChunkIdent {
     fn parse(input: ParseStream) -> Result<Self> {
-        println!("parse ident: {input:?}");
         let mut sym = String::new();
         let mut stream = TokenStream::new();
         let mut is_fn = false;
@@ -108,7 +112,7 @@ impl Parse for ChunkIdent {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ChunkTupleExp {
     Bool(bool),
     Ident(ChunkIdent),
@@ -116,7 +120,6 @@ pub enum ChunkTupleExp {
 
 impl Parse for ChunkTupleExp {
     fn parse(input: ParseStream) -> Result<Self> {
-        println!("parse tuple exp: {input:?}");
         if input.peek(LitBool) {
             let bool_token: LitBool = input.parse()?;
             return Ok(ChunkTupleExp::Bool(bool_token.value));
@@ -141,16 +144,15 @@ pub struct ChunkTupleInner {
 
 impl Parse for ChunkTupleInner {
     fn parse(input: ParseStream) -> Result<Self> {
-        println!("parse tuple inner: {input:?}");
         let exp: ChunkTupleExp = input.parse()?;
         let _ = input.parse::<Comma>()?;
 
-        let if_cond = input.parse::<LitStr>()?.value();
+        let if_cond = input.parse::<LitStr>()?.value().trim().to_string();
 
         let mut else_cond: Option<String> = None;
         if !input.is_empty() {
             let _ = input.parse::<Comma>()?;
-            else_cond = Some(input.parse::<LitStr>()?.value());
+            else_cond = Some(input.parse::<LitStr>()?.value().trim().to_string());
         }
 
         if !input.is_empty() {
@@ -168,11 +170,19 @@ impl Parse for ChunkTupleInner {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ChunkTuple {
     pub exp: ChunkTupleExp,
     pub if_cond: String,
     pub else_cond: Option<String>,
+    pub span: Span,
+}
+
+impl ChunkTuple {
+    fn set_span(mut self, span: Span) -> Self {
+        self.span = span;
+        self
+    }
 }
 
 impl From<ChunkTupleInner> for ChunkTuple {
@@ -181,29 +191,30 @@ impl From<ChunkTupleInner> for ChunkTuple {
             exp: value.exp,
             if_cond: value.if_cond,
             else_cond: value.else_cond,
+            span: Span::call_site(),
         }
     }
 }
 
 impl Parse for ChunkTuple {
     fn parse(input: ParseStream) -> Result<Self> {
-        println!("parse tuple: {input:?}");
         let ChunkGroup(group) = input.parse()?;
 
-        let chunk_tuple: ChunkTupleInner = parse2(group.stream())?;
-        Ok(chunk_tuple.into())
+        let chunk_tuple: ChunkTuple = parse2::<ChunkTupleInner>(group.stream())?.into();
+        Ok(chunk_tuple.set_span(group.span()))
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ChunkItem {
-    Str(String),
+    Str { value: String, span: Span },
+    Int { value: i32, span: Span },
     Ident(ChunkIdent),
     Tuple(ChunkTuple),
 }
 
-#[derive(Debug)]
-pub struct ChunkList(Vec<ChunkItem>);
+#[derive(Debug, Clone)]
+pub struct ChunkList(pub Vec<ChunkItem>);
 
 impl Parse for ChunkList {
     fn parse(input: ParseStream) -> Result<Self> {
@@ -216,7 +227,19 @@ impl Parse for ChunkList {
             }
 
             if input.peek(LitStr) {
-                chunks.push(ChunkItem::Str(input.parse::<LitStr>()?.value()));
+                let string: LitStr = input.parse()?;
+                let value = string.value();
+                chunks.push(ChunkItem::Str {
+                    value,
+                    span: string.span(),
+                });
+            } else if input.peek(LitInt) {
+                let number: LitInt = input.parse()?;
+                let value: i32 = number.base10_parse()?;
+                chunks.push(ChunkItem::Int {
+                    value,
+                    span: number.span(),
+                });
             } else if ChunkIdent::peek(input) {
                 chunks.push(ChunkItem::Ident(input.parse::<ChunkIdent>()?))
             } else {
