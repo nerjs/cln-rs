@@ -8,16 +8,17 @@ edition = "2021"
 resolver = "2"
 
 members = [ 
-    "macros", 
-    "utils",
+    "macros_core", 
+    # "macros", 
+    # "utils",
     # "classlist", 
     # "variant"
 ]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-macros = { path = "./macros" }
-utils = { path = "./utils" }
+macros_core = { path = "./macros_core" }
+# utils = { path = "./utils" }
 # quote = "1.0.36"
 # log = "0.4.21"
 # variant = { path = "./variant" }
