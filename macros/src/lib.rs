@@ -2,35 +2,24 @@ extern crate proc_macro;
 extern crate quote;
 extern crate syn;
 
+use macros_core::{ChunkList, IntoCnParser, IntoCnTypes};
 use proc_macro::TokenStream;
-use proc_macro2::TokenTree;
-use quote::quote;
-use syn::parse_macro_input;
-use syn::{
-    parse::ParseStream, punctuated::Punctuated, Attribute, Expr, ExprArray, ExprReference, ExprTry,
-    Ident, LitStr, MetaList, Token, Visibility,
-};
-use utils::zzz;
+use quote::ToTokens;
+use syn::{parse_macro_input, Error, Result};
 
-#[proc_macro]
-pub fn normalize_list(input: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(input as LitStr);
-    let mut string = utils::normalize_list_impl(input.value());
-    string.push_str(&format!(" {}", env!("CARGO_PKG_NAME")));
-    quote! {
-        #string
-    }
-    .into()
+fn cn_impl(chunk_list: ChunkList) -> Result<proc_macro2::TokenStream> {
+    let result = chunk_list
+        .into_cn_parser()?
+        .into_cn_types()
+        .to_token_stream();
+    Ok(result)
 }
 
-
 #[proc_macro]
-pub fn normalize_list_from_util(input: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(input as LitStr);
-    let string = input.value();
+pub fn cn(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as ChunkList);
 
-    quote! {
-        ::ui_helpers_rs::zzz!(#string)
-    }
-    .into()
+    cn_impl(input)
+        .unwrap_or_else(Error::into_compile_error)
+        .into()
 }

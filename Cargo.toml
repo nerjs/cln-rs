@@ -18,6 +18,7 @@ members = [
 
 [dependencies]
 macros_core = { path = "./macros_core" }
+macros = { path = "./macros" }
 # utils = { path = "./utils" }
 # quote = "1.0.36"
 # log = "0.4.21"

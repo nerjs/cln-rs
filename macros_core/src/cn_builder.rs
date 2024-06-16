@@ -2,7 +2,6 @@ use crate::cleanup_cnl::cleanup_cnl;
 
 pub struct CnPart(String);
 
-
 impl From<&str> for CnPart {
     fn from(value: &str) -> Self {
         Self(value.to_string())
@@ -33,8 +32,23 @@ impl From<(bool, &str, &str)> for CnPart {
     }
 }
 
+impl From<(Option<bool>, &str, &str)> for CnPart {
+    fn from(value: (Option<bool>, &str, &str)) -> Self {
+        match value.0 {
+            Some(bool_value) => CnPart::from((bool_value, value.1, value.2)),
+            None => CnPart::from((false, value.1, value.2)),
+        }
+    }
+}
+
 impl From<(bool, &str)> for CnPart {
     fn from(value: (bool, &str)) -> Self {
+        Self::from((value.0, value.1, ""))
+    }
+}
+
+impl From<(Option<bool>, &str)> for CnPart {
+    fn from(value: (Option<bool>, &str)) -> Self {
         Self::from((value.0, value.1, ""))
     }
 }
