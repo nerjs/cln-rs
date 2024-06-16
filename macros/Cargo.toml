@@ -9,7 +9,9 @@ proc-macro = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-quote = "1.0.36"
-macros_core = { path = "../macros_core" }
-proc-macro2 = "1.0.85"
-syn = { version = "2.0.66", features = ["extra-traits"] }
+macros_core = { path = "../macros_core", default-features = false }
+
+
+[features]
+default = ["debug"]
+debug = ["macros_core/debug"]

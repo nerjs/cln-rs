@@ -1,3 +1,5 @@
+pub use macros::cn;
+
 pub mod __private {
-    pub use macros_core::CnBuilder;
+    pub use classlist::CnBuilder;
 }

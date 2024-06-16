@@ -3,19 +3,21 @@
 version = 3
 
 [[package]]
+name = "classlist"
+version = "0.1.0"
+
+[[package]]
 name = "macros"
 version = "0.1.0"
 dependencies = [
  "macros_core",
- "proc-macro2",
- "quote",
- "syn",
 ]
 
 [[package]]
 name = "macros_core"
 version = "0.1.0"
 dependencies = [
+ "classlist",
  "proc-macro2",
  "quote",
  "syn",
@@ -54,8 +56,8 @@ dependencies = [
 name = "ui_helpers_rs"
 version = "0.1.0"
 dependencies = [
+ "classlist",
  "macros",
- "macros_core",
 ]
 
 [[package]]

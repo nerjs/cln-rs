@@ -6,7 +6,8 @@ use crate::{
     tokens_parsers::{ChunkIdent, ChunkItem, ChunkList, ChunkTupleExp},
 };
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
+#[cfg_attr(feature = "debug", derive(Debug))]
 pub struct ChunkTuppleCn {
     pub exp: ChunkIdent,
     pub if_cond: String,
@@ -28,14 +29,16 @@ impl ToTokens for ChunkTuppleCn {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
+#[cfg_attr(feature = "debug", derive(Debug))]
 pub enum CnItem {
     Str(String),
     Ident(ChunkIdent),
     Tuple(ChunkTuppleCn),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
+#[cfg_attr(feature = "debug", derive(Debug))]
 pub struct CnListParser {
     pub items: Vec<CnItem>,
     pub vars: Vec<String>,

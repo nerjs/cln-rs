@@ -1,8 +1,9 @@
-use crate::{classnames_parser::CnItem, cleanup_cnl::cleanup_cnl};
+use crate::classnames_parser::CnItem;
+use classlist::cleanup_cnl;
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens, TokenStreamExt};
 
-#[derive(Debug)]
+#[cfg_attr(feature = "debug", derive(Debug))]
 pub enum CnTypes {
     None,
     Once(String),

@@ -7,7 +7,7 @@ use syn::{
     Error, Ident, LitBool, LitInt, LitStr, Result,
 };
 
-#[derive(Debug)]
+#[cfg_attr(feature = "debug", derive(Debug))]
 pub struct ChunkGroup(Group);
 
 impl Parse for ChunkGroup {
@@ -31,7 +31,8 @@ impl Parse for ChunkGroup {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
+#[cfg_attr(feature = "debug", derive(Debug))]
 pub struct ChunkIdent {
     pub sym: String,
     pub stream: TokenStream,
@@ -112,7 +113,8 @@ impl Parse for ChunkIdent {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
+#[cfg_attr(feature = "debug", derive(Debug))]
 pub enum ChunkTupleExp {
     Bool(bool),
     Ident(ChunkIdent),
@@ -135,7 +137,7 @@ impl Parse for ChunkTupleExp {
     }
 }
 
-#[derive(Debug)]
+#[cfg_attr(feature = "debug", derive(Debug))]
 pub struct ChunkTupleInner {
     pub exp: ChunkTupleExp,
     pub if_cond: String,
@@ -170,7 +172,8 @@ impl Parse for ChunkTupleInner {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
+#[cfg_attr(feature = "debug", derive(Debug))]
 pub struct ChunkTuple {
     pub exp: ChunkTupleExp,
     pub if_cond: String,
@@ -205,7 +208,8 @@ impl Parse for ChunkTuple {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
+#[cfg_attr(feature = "debug", derive(Debug))]
 pub enum ChunkItem {
     Str { value: String, span: Span },
     Int { value: i32, span: Span },
@@ -213,7 +217,8 @@ pub enum ChunkItem {
     Tuple(ChunkTuple),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
+#[cfg_attr(feature = "debug", derive(Debug))]
 pub struct ChunkList(pub Vec<ChunkItem>);
 
 impl Parse for ChunkList {
