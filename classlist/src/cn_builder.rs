@@ -1,5 +1,7 @@
 use crate::cleanup_cnl::cleanup_cnl;
 
+
+#[cfg_attr(feature = "debug", derive(Debug))]
 pub struct CnPart(String);
 
 impl CnPart {
@@ -59,6 +61,8 @@ impl From<(Option<bool>, &str)> for CnPart {
     }
 }
 
+
+#[cfg_attr(feature = "debug", derive(Debug))]
 pub struct CnBuilder(String);
 
 impl CnBuilder {

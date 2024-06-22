@@ -14,5 +14,5 @@ pub fn append_separated_coma(target_tokens: &mut TokenStream, list_tokens: &Vec<
 }
 
 pub(crate) fn global_deps() -> TokenStream {
-    quote! {ui_helpers_rs::__private::}
+    quote! {cln::__private::}
 }

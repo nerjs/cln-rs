@@ -12,7 +12,8 @@ use syn::{
     Error, LitInt, LitStr, Result,
 };
 
-#[derive(Debug)]
+
+#[cfg_attr(feature = "debug", derive(Debug))]
 pub struct CnParser(pub Vec<CnUnit>);
 
 impl Parse for CnParser {
@@ -126,7 +127,7 @@ impl ToTokens for CnIdentTupple {
         } = self;
         let token_stream = match else_cond {
             Some(else_cond) => quote! {(#exp, #if_cond, #else_cond)},
-            None => quote! {(#exp, if_cond)},
+            None => quote! {(#exp, #if_cond)},
         };
         tokens.append_all(token_stream);
     }
@@ -140,7 +141,8 @@ pub enum CnItem {
     Tuple(CnIdentTupple),
 }
 
-#[derive(Debug)]
+
+#[cfg_attr(feature = "debug", derive(Debug))]
 pub struct CnTokens(Vec<CnItem>);
 
 fn merge_string(value: String, prefix_string: &mut String, items: &mut Vec<CnItem>) {

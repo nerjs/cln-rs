@@ -14,7 +14,8 @@ use crate::{
     utils::{append_separated_coma, ident_by_num},
 };
 
-#[derive(Debug)]
+
+#[cfg_attr(feature = "debug", derive(Debug))]
 struct NamedParam {
     names: HashSet<Ident>,
     used: HashSet<Ident>,
@@ -81,7 +82,8 @@ impl ToTokens for NamedParam {
     }
 }
 
-#[derive(Debug)]
+
+#[cfg_attr(feature = "debug", derive(Debug))]
 struct UnnamedParam {
     count: u8,
     used: HashSet<u8>,
@@ -141,7 +143,8 @@ impl ToTokens for UnnamedParam {
     }
 }
 
-#[derive(Debug)]
+
+#[cfg_attr(feature = "debug", derive(Debug))]
 enum VariantParams {
     None,
     Unnamed(UnnamedParam),
@@ -198,7 +201,8 @@ impl ToTokens for VariantParams {
     }
 }
 
-#[derive(Debug)]
+
+#[cfg_attr(feature = "debug", derive(Debug))]
 pub struct VariantFields {
     name: Ident,
     params: VariantParams,

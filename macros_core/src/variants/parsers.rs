@@ -10,7 +10,8 @@ use crate::utils::global_deps;
 
 use super::units::VariantFields;
 
-#[derive(Debug)]
+
+#[cfg_attr(feature = "debug", derive(Debug))]
 pub struct VariantDeriveParser {
     pub name: Ident,
     pub fields: Vec<VariantFields>,

@@ -7,6 +7,14 @@ name = "classlist"
 version = "0.1.0"
 
 [[package]]
+name = "cln"
+version = "0.1.0"
+dependencies = [
+ "classlist",
+ "macros",
+]
+
+[[package]]
 name = "macros"
 version = "0.1.0"
 dependencies = [
@@ -50,14 +58,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-ident",
-]
-
-[[package]]
-name = "ui_helpers_rs"
-version = "0.1.0"
-dependencies = [
- "classlist",
- "macros",
 ]
 
 [[package]]

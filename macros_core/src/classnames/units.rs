@@ -1,9 +1,9 @@
 use proc_macro2::{Delimiter, Group, Span, TokenStream, TokenTree};
-use quote::{ToTokens, TokenStreamExt};
+use quote::{quote, ToTokens, TokenStreamExt};
 use syn::{
     parse::{Parse, ParseStream},
     parse2,
-    token::{And, AndAnd, Comma, Dot, Star},
+    token::{And, AndAnd, Colon, Comma, Dot, Star},
     Error, Ident, LitBool, LitInt, LitStr, Result,
 };
 
@@ -51,6 +51,8 @@ impl ToTokens for CnIdent {
     }
 }
 
+
+
 impl Parse for CnIdent {
     fn parse(input: ParseStream) -> Result<Self> {
         let mut sym = String::new();
@@ -71,7 +73,6 @@ impl Parse for CnIdent {
         stream.append(first_ident.clone());
 
         let mut expect_ident = false;
-
         while !input.is_empty() {
             if expect_ident {
                 let ident: Ident = input.parse()?;
@@ -86,6 +87,12 @@ impl Parse for CnIdent {
                     let dot_literal: Dot = input.parse()?;
                     sym.push_str(".");
                     dot_literal.to_tokens(&mut stream);
+                    expect_ident = true;
+                } else if  input.peek(Colon) {
+                    let _: Colon = input.parse()?;
+                    let _: Colon = input.parse()?;
+                    sym.push_str("::");
+                    stream.append_all(quote! {::});
                     expect_ident = true;
                 } else {
                     let CnGroup(group) = input.parse()?;
