@@ -16,5 +16,5 @@ members = [
 
 [dependencies]
 classlist = { path = "./classlist" }
-macros = { path = "./macros", default-features = false }
+macros = { path = "./macros", default-features = true }
 

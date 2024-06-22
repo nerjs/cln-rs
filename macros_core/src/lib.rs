@@ -4,7 +4,13 @@ extern crate syn;
 
 // mod fields;
 // mod parsing;
+mod utils;
 mod classnames {
+    pub mod parsers;
+    pub mod units;
+}
+
+mod variants {
     pub mod parsers;
     pub mod units;
 }
@@ -15,6 +21,7 @@ use proc_macro2::TokenStream;
 use quote::ToTokens;
 pub use syn::Error;
 use syn::{parse2, Result};
+use variants::parsers::VariantDeriveParser;
 
 pub fn cn_impl(input: proc_macro::TokenStream) -> Result<TokenStream> {
     let result = parse2::<CnParser>(TokenStream::from(input))?
@@ -25,9 +32,7 @@ pub fn cn_impl(input: proc_macro::TokenStream) -> Result<TokenStream> {
 }
 
 pub fn variant_impl(input: proc_macro::TokenStream) -> Result<TokenStream> {
-    // let input = parse2::<DeriveInput>(TokenStream::from(input))?;
-    let input = parse2::<TokenStream>(TokenStream::from(input)).unwrap();
-    println!("input: {:#?}", input);
+    let result = parse2::<VariantDeriveParser>(TokenStream::from(input))?.to_token_stream();
 
-    Ok(TokenStream::new())
+    Ok(result)
 }

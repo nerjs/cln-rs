@@ -36,6 +36,7 @@ impl Parse for CnGroup {
 pub struct CnIdent {
     pub sym: String,
     pub stream: TokenStream,
+    pub ident: Ident,
 }
 
 impl CnIdent {
@@ -67,7 +68,7 @@ impl Parse for CnIdent {
 
         let first_ident: Ident = input.parse()?;
         sym.push_str(&first_ident.to_string());
-        stream.append(first_ident);
+        stream.append(first_ident.clone());
 
         let mut expect_ident = false;
 
@@ -98,7 +99,11 @@ impl Parse for CnIdent {
             return Err(Error::new(input.span(), "Expected ident"));
         }
 
-        Ok(Self { sym, stream })
+        Ok(Self {
+            sym,
+            stream,
+            ident: first_ident,
+        })
     }
 }
 

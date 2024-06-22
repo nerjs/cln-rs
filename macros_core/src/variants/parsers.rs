@@ -1,31 +1,16 @@
-use proc_macro2::TokenStream;
-use quote::ToTokens;
+use proc_macro2::{Punct, Spacing, TokenStream};
+use quote::{quote, ToTokens, TokenStreamExt};
 use syn::{
     parse::{Parse, ParseStream},
     spanned::Spanned,
-    Data, DeriveInput, Error, Generics, Ident, LitInt, LitStr, Result,
+    Data, DeriveInput, Error, Generics, Ident, Result,
 };
 
-use crate::{
-    fields::VariantFields,
-    items::{CnIdent, CnTuple},
-};
+use crate::utils::global_deps;
 
-pub trait CnIntoBuilder {
-    fn from_cn(items: Vec<CnItem>) -> Self;
-}
+use super::units::VariantFields;
 
-impl CnParser {
-    pub fn into_builder<T>(&self) -> T
-    where
-        T: CnIntoBuilder,
-    {
-        T::from_cn(self.0.clone())
-    }
-}
-
-// Variant
-
+#[derive(Debug)]
 pub struct VariantDeriveParser {
     pub name: Ident,
     pub fields: Vec<VariantFields>,
@@ -67,5 +52,32 @@ impl Parse for VariantDeriveParser {
                 "Only enums are supported for the variant",
             )),
         }
+    }
+}
+
+impl ToTokens for VariantDeriveParser {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        let name = &self.name;
+        let mut variants = TokenStream::new();
+        let mut fields: Vec<TokenStream> = Vec::new();
+
+        for field in &self.fields {
+            fields.push(field.to_token_stream());
+        }
+
+        variants.append_separated(fields, Punct::new(',', Spacing::Alone));
+
+        let global_dep = global_deps();
+        tokens.append_all(quote! {
+            impl Into<#global_dep CnPart> for #name {
+                fn into(self) -> #global_dep CnPart {
+                    let variant = match self {
+                        #variants
+                    };
+
+                    #global_dep CnPart::new(variant)
+                }
+            }
+        })
     }
 }

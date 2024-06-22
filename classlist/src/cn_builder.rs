@@ -2,6 +2,12 @@ use crate::cleanup_cnl::cleanup_cnl;
 
 pub struct CnPart(String);
 
+impl CnPart {
+    pub fn new(cn: String) -> Self {
+        Self(cn)
+    }
+}
+
 impl From<&str> for CnPart {
     fn from(value: &str) -> Self {
         Self(value.to_string())
@@ -14,14 +20,14 @@ impl From<String> for CnPart {
     }
 }
 
-impl<T: Into<String>> From<Option<T>> for CnPart {
+
+
+impl<T> From<Option<T>> for CnPart where T: Into<CnPart> + Default {
     fn from(value: Option<T>) -> Self {
-        match value {
-            Some(value) => Self(value.into()),
-            None => Self(String::new()),
-        }
+        value.unwrap_or_default().into()
     }
 }
+
 
 impl From<(bool, &str, &str)> for CnPart {
     fn from(value: (bool, &str, &str)) -> Self {

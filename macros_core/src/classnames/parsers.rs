@@ -1,3 +1,6 @@
+use crate::utils::global_deps;
+use crate::utils::ident_by_num;
+
 use super::units::{CnIdent, CnTupleExp, CnUnit};
 use classlist::cleanup_cnl;
 use proc_macro2::{Span, TokenStream};
@@ -6,9 +9,10 @@ use quote::ToTokens;
 use quote::TokenStreamExt;
 use syn::{
     parse::{Parse, ParseStream},
-    Error, Ident, LitInt, LitStr, Result,
+    Error, LitInt, LitStr, Result,
 };
 
+#[derive(Debug)]
 pub struct CnParser(pub Vec<CnUnit>);
 
 impl Parse for CnParser {
@@ -38,25 +42,34 @@ impl Parse for CnParser {
     }
 }
 
+pub trait CheckVariantIndexes {
+    fn check_index(&mut self, value: u8, span: Span) -> Result<()>;
+}
+
 pub trait CheckVariantIdents {
-    fn cheeck_index(&mut self, value: i32, span: Span) -> Result<()>;
     fn check_ident(&mut self, value: CnIdent) -> Result<()>;
 }
 
-fn modify_int_ident<T: CheckVariantIdents>(literal: LitInt, checker: &mut T) -> Result<CnIdent> {
-    let value: i32 = literal.base10_parse()?;
-    checker.cheeck_index(value, literal.span())?;
-    let name = format!("var_{}", value);
-    let ident = Ident::new(&name, literal.span()).to_token_stream();
+fn modify_int_ident<T: CheckVariantIndexes + CheckVariantIdents>(
+    literal: LitInt,
+    checker: &mut T,
+) -> Result<CnIdent> {
+    let value: u8 = literal.base10_parse()?;
+    checker.check_index(value, literal.span())?;
+    let ident = ident_by_num(&value, Some(literal.span()));
 
     Ok(CnIdent {
-        sym: name,
-        stream: ident,
+        sym: ident.to_string(),
+        ident: ident.clone(),
+        stream: ident.to_token_stream(),
     })
 }
 
 impl CnParser {
-    pub fn check_idents<T: CheckVariantIdents>(mut self, checker: &mut T) -> Result<Self> {
+    pub fn check_idents<T: CheckVariantIndexes + CheckVariantIdents>(
+        mut self,
+        checker: &mut T,
+    ) -> Result<Self> {
         let mut units: Vec<CnUnit> = Vec::new();
 
         for unit in self.0 {
@@ -127,6 +140,7 @@ pub enum CnItem {
     Tuple(CnIdentTupple),
 }
 
+#[derive(Debug)]
 pub struct CnTokens(Vec<CnItem>);
 
 fn merge_string(value: String, prefix_string: &mut String, items: &mut Vec<CnItem>) {
@@ -205,20 +219,21 @@ impl TryFrom<CnParser> for CnTokens {
 impl ToTokens for CnTokens {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         if self.0.len() == 0 {
-            tokens.append_all(quote! {""});
+            tokens.append_all(quote! {String::new()});
             return;
         }
 
         if self.0.len() == 1 {
             if let Some(first) = self.0.first() {
                 if let CnItem::Str(first_string) = first {
-                    tokens.append_all(quote! { #first_string });
+                    tokens.append_all(quote! { #first_string .to_string() });
                     return;
                 }
             }
         }
 
-        tokens.append_all(quote! { ui_helpers_rs::__private::CnBuilder::new() });
+        let global_dep = global_deps();
+        tokens.append_all(quote! { #global_dep CnBuilder::new() });
 
         let stream_list = self
             .0
